@@ -1,0 +1,26 @@
+{
+  "name": "atlas-the-joy-of-painting-api",
+  "version": "1.0.0",
+  "description": "atlas-the-joy-of-painting-api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kevxcyj/atlas-the-joy-of-painting-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/kevxcyj/atlas-the-joy-of-painting-api/issues"
+  },
+  "homepage": "https://github.com/kevxcyj/atlas-the-joy-of-painting-api#readme",
+  "dependencies": {
+    "csv-parser": "^3.2.0",
+    "dotenv": "^17.2.1",
+    "mongodb": "^6.18.0"
+  }
+}
