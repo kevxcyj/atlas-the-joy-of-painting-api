@@ -5,14 +5,16 @@ const csv = require('csv-parser');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+// database connection
 const connectDB = require('../db/connect');
 const Episode = require('../models/Episode');
 
+// file paths
 const COLORS_FILE = path.join(__dirname, '../data/colors.csv');
 const SUBJECTS_FILE = path.join(__dirname, '../data/subjects.csv');
 const DATES_FILE = path.join(__dirname, '../data/dates.txt');
 
-// Helper: read file as promise
+// reads csv file, returns an array of objects
 function readCSV(filePath) {
   return new Promise((resolve, reject) => {
     const results = [];
@@ -24,6 +26,7 @@ function readCSV(filePath) {
   });
 }
 
+// reads dates file, returns an array of episode objects
 function readDatesFile(filePath) {
   const rawText = fs.readFileSync(filePath, 'utf-8');
   const lines = rawText.trim().split('\n');
@@ -39,6 +42,7 @@ function readDatesFile(filePath) {
   });
 }
 
+// extract colors
 function transformColors(row) {
   const colorNames = [];
   const hexCodes = [];
