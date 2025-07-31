@@ -30,16 +30,34 @@ function readCSV(filePath) {
 function readDatesFile(filePath) {
   const rawText = fs.readFileSync(filePath, 'utf-8');
   const lines = rawText.trim().split('\n');
-  return lines.map((line) => {
-    const [title, date] = line.split(' - ');
-    const match = title.match(/S(\d{2})E(\d{2})/);
-    return {
-      title: title.replace(/ \(.*\)/, '').trim(),
-      season: parseInt(match[1], 10),
-      episode: parseInt(match[2], 10),
-      broadcastDate: new Date(date)
-    };
-  });
+
+  return lines
+    .map((line, index) => {
+      if (!line.trim()) {
+        console.warn(`Skipping empty line at index ${index}`);
+        return null;
+      }
+
+      const [title, date] = line.split(' - ');
+      if (!title || !date) {
+        console.warn(`Malformed line (missing title or date) at index ${index}:`, line);
+        return null;
+      }
+
+      const match = title.match(/S(\d{2})E(\d{2})/);
+      if (!match) {
+        console.warn(`Invalid episode code in title at index ${index}:`, title);
+        return null;
+      }
+
+      return {
+        title: title.replace(/ \(.*\)/, '').trim(),
+        season: parseInt(match[1], 10),
+        episode: parseInt(match[2], 10),
+        broadcastDate: new Date(date)
+      };
+    })
+    .filter(Boolean); // remove null entries
 }
 
 // extract colors
