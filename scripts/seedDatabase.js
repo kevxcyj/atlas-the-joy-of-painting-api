@@ -38,23 +38,23 @@ function readDatesFile(filePath) {
         return null;
       }
 
-      const [title, date] = line.split(' - ');
+      const [title, date] = line.split('" (');
       if (!title || !date) {
         console.warn(`Malformed line (missing title or date) at index ${index}:`, line);
         return null;
       }
 
-      const match = title.match(/S(\d{2})E(\d{2})/);
-      if (!match) {
-        console.warn(`Invalid episode code in title at index ${index}:`, title);
-        return null;
-      }
+    //   const match = title.match(/S(\d{2})E(\d{2})/);
+    //   if (!match) {
+    //     console.warn(`Invalid episode code in title at index ${index}:`, title);
+    //     return null;
+    //   }
 
       return {
         title: title.replace(/ \(.*\)/, '').trim(),
-        season: parseInt(match[1], 10),
-        episode: parseInt(match[2], 10),
-        broadcastDate: new Date(date)
+        // season: parseInt(match[1], 10),
+        // episode: parseInt(match[2], 10),
+        broadcastDate: date.replace(/\).+/, '')
       };
     })
     .filter(Boolean); // remove null entries
@@ -104,6 +104,7 @@ async function seedDatabase() {
     readCSV(SUBJECTS_FILE)
   ]);
   const datesData = readDatesFile(DATES_FILE);
+  console.log(...datesData);
 
   const episodeDocs = [];
 
