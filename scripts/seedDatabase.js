@@ -63,32 +63,19 @@ function readDatesFile(filePath) {
 
 // extract colors
 function transformColors(row) {
-  const colorNames = [];
-  const hexCodes = [];
+  let names, hexes;
 
-  Object.keys(row).forEach(key => {
-    let match;
+  try {
+    names = JSON.parse(row.colors.replace(/'/g, '"'));
+    hexes = JSON.parse(row.color_hex.replace(/'/g, '"'));
+  } catch (err) {
+    console.warn('Failed to parse colors or hexes for row:', row);
+    return [];
+  }
 
-    if (key.startsWith('color')) {
-      match = key.match(/color(\d+)/);
-      if (match && row[key]) {
-        const index = Number(match[1]);
-        colorNames[index - 1] = row[key];
-      }
-    }
-
-    if (key.startsWith('hex')) {
-      match = key.match(/hex(\d+)/);
-      if (match && row[key]) {
-        const index = Number(match[1]);
-        hexCodes[index - 1] = row[key];
-      }
-    }
-  });
-
-  return colorNames.map((name, i) => ({
-    name,
-    hex: hexCodes[i] || null
+  return names.map((name, i) => ({
+    name: name.trim(),
+    hex: hexes[i] || null
   }));
 }
 
@@ -110,8 +97,27 @@ async function seedDatabase() {
     readCSV(COLORS_FILE),
     readCSV(SUBJECTS_FILE)
   ]);
+
   const datesData = readDatesFile(DATES_FILE);
   console.log(...datesData);
+
+  console.log('Clearing old subjects...');
+  await Subject.deleteMany({});
+
+
+  const allSubjects = new Set();
+  subjectsData.forEach((row) => {
+    Object.keys(row).forEach((key) => {
+      if (row[key] === '1') allSubjects.add(key);
+    });
+  });
+
+  // Insert new subject documents
+  const subjectDocs = Array.from(allSubjects).map((name) => ({ name }));
+  await Subject.insertMany(subjectDocs);
+  console.log(`Inserted ${subjectDocs.length} subjects`);
+
+  
 
   const episodeDocs = [];
 
@@ -121,10 +127,12 @@ async function seedDatabase() {
     const subjectRow = subjectsData[i] || {};
 
     const colors = transformColors(colorRow);
+    console.log(`Colors for episode ${dateRow.title}:`, colors);
+
     const subjectNames = transformSubjects(subjectRow);
     
 
-    const cleanedDate = dateRow.broadcastDate.replace(/[^\w\s,]/g, ''); // removes trailing ")"
+    const cleanedDate = dateRow.broadcastDate.trim().replace(/[)]$/, '');
 
     const subjectDocs = await Subject.find({ name: { $in: subjectNames } });
     const subjectIds = subjectDocs.map((doc) => doc._id);

@@ -1,12 +1,19 @@
 const mongoose = require('mongoose');
 
+const colorSchema = new mongoose.Schema({
+  name: String,
+  hex: String
+}, { _id: false });
+
 const episodeSchema = new mongoose.Schema({
-  season: Number,
-  episodeNumber: Number,
   title: String,
-  broadcastDate: Date,
-  colors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Color' }],
-  subjects: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subject' }]
+  season: Number,
+  episode: Number,
+  youtubeSrc: String,
+  imageSrc: String,
+  colors: [colorSchema],
+  subjects: [String],
+  date: Date
 });
 
 module.exports = mongoose.model('Episode', episodeSchema);
