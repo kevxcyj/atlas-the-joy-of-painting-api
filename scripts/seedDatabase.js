@@ -8,6 +8,7 @@ require('dotenv').config();
 // database connection
 const connectDB = require('../db/connect');
 const Episode = require('../models/Episode');
+const Subject = require('../models/Subject');
 
 // file paths
 const COLORS_FILE = path.join(__dirname, '../data/colors.csv');
@@ -65,23 +66,29 @@ function transformColors(row) {
   const colorNames = [];
   const hexCodes = [];
 
-  Object.keys(row).forEach((key) => {
+  Object.keys(row).forEach(key => {
+    let match;
+
     if (key.startsWith('color')) {
-      const index = key.match(/color(\d+)/)[1];
-      if (row[key]) {
-        colorNames[Number(index) - 1] = row[key];
+      match = key.match(/color(\d+)/);
+      if (match && row[key]) {
+        const index = Number(match[1]);
+        colorNames[index - 1] = row[key];
       }
-    } else if (key.startsWith('hex')) {
-      const index = key.match(/hex(\d+)/)[1];
-      if (row[key]) {
-        hexCodes[Number(index) - 1] = row[key];
+    }
+
+    if (key.startsWith('hex')) {
+      match = key.match(/hex(\d+)/);
+      if (match && row[key]) {
+        const index = Number(match[1]);
+        hexCodes[index - 1] = row[key];
       }
     }
   });
 
   return colorNames.map((name, i) => ({
     name,
-    hex: hexCodes[i] || '#000000'
+    hex: hexCodes[i] || null
   }));
 }
 
@@ -114,17 +121,25 @@ async function seedDatabase() {
     const subjectRow = subjectsData[i] || {};
 
     const colors = transformColors(colorRow);
-    const subjects = transformSubjects(subjectRow);
+    const subjectNames = transformSubjects(subjectRow);
+    
+
+    const cleanedDate = dateRow.broadcastDate.replace(/[^\w\s,]/g, ''); // removes trailing ")"
+
+    const subjectDocs = await Subject.find({ name: { $in: subjectNames } });
+    const subjectIds = subjectDocs.map((doc) => doc._id);
 
     const episode = {
       title: dateRow.title,
       season: dateRow.season,
       episode: dateRow.episode,
-      broadcastDate: dateRow.broadcastDate,
+      broadcastDate: new Date(cleanedDate),
+
+
       youtubeURL: colorRow.youtube || '',
       imageURL: colorRow.img || '',
       colors,
-      subjects
+      subjects: subjectIds,
     };
 
     episodeDocs.push(episode);
